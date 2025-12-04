@@ -1,11 +1,11 @@
 import { MetadataRoute } from 'next'
-import { createClient } from '@/lib/supabase-server'
+import { createPublicClient } from '@/lib/supabase-public'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yourdomain.com'
   
   // Get all searches with results from the database
-  const supabase = await createClient()
+  const supabase = createPublicClient()
   const { data: searches } = await supabase
     .from('searches')
     .select('query, created_at')

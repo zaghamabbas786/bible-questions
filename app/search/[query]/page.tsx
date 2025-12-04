@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase-server'
+import { createPublicClient } from '@/lib/supabase-public'
 import { StudyResponse } from '@/types'
 import SearchResultPage from '@/app/components/SearchResultPage'
 
@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { query } = await params
   const decodedQuery = decodeURIComponent(query)
   
-  const supabase = await createClient()
+  const supabase = createPublicClient()
   const { data } = await supabase
     .from('searches')
     .select('result, query')
@@ -74,7 +74,7 @@ export default async function SearchPage({ params }: PageProps) {
   const { query } = await params
   const decodedQuery = decodeURIComponent(query)
 
-  const supabase = await createClient()
+  const supabase = createPublicClient()
   const { data, error } = await supabase
     .from('searches')
     .select('result, query, created_at')
