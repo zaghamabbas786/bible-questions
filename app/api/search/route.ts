@@ -57,7 +57,9 @@ export async function POST(request: NextRequest) {
       config: {
         systemInstruction: `You are Bible Questions, a profound and strictly focused biblical scholar assistant. 
         
-        Your purpose is to provide deep historical, linguistic (Greek/Hebrew), and theological context to questions. 
+        Your purpose is to provide deep historical, linguistic (Greek/Hebrew), and theological context to questions.
+        
+        IMPORTANT: When quoting Bible verses, use the World English Bible (WEB) translation which is in the public domain. Provide verse references and text naturally as part of your scholarly analysis, not as verbatim reproductions. 
         
         RULES:
         1. IF the user's input is NOT related to the Bible, theology, church history, or spiritual growth, you MUST set 'isRelevant' to false and provide a polite, short refusal message explaining that you only discuss biblical topics.
@@ -83,7 +85,8 @@ export async function POST(request: NextRequest) {
         10. For 'scriptureReferences':
             - You MUST include EVERY single Bible verse reference mentioned in your 'literalAnswer'.
             - Also include other relevant verses.
-            - ALWAYS include the full text of the verse from the World English Bible (WEB) (public domain).
+            - Include the full text of the verse from the World English Bible (WEB) (public domain).
+            - If quoting full verses triggers content filters, provide the reference and a brief summary instead.
         11. CRITICAL: You must identify a 'geographicalAnchor' for the query. 
             - Even for abstract concepts, ground them in a location (e.g. "Grace" -> "Rome" (Epistles) or "Jerusalem" (Cross)). 
             - Provide the 'location' (specific city/spot) and 'region' (broader area, e.g. Judea, Asia Minor).
@@ -210,15 +213,87 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    if (!response.text) {
-      throw new Error("No response received from Gemini.")
+    // Check for errors in the response first (using type assertion for error checking)
+    const responseAny = response as any
+    if (responseAny.error) {
+      console.error('Gemini API error:', responseAny.error)
+      throw new Error(`Gemini API error: ${responseAny.error.message || JSON.stringify(responseAny.error)}`)
     }
 
-    const data = JSON.parse(response.text) as StudyResponse
-    return NextResponse.json(data)
+    // Check for blocked or filtered content
+    if (response.candidates && response.candidates[0]?.finishReason) {
+      const finishReason = response.candidates[0].finishReason
+      if (finishReason === 'SAFETY' || finishReason === 'RECITATION' || finishReason === 'OTHER') {
+        console.error('Gemini content blocked. Finish reason:', finishReason)
+        
+        // Create error with finishReason attached for catch block to detect
+        const error: any = new Error('Content was blocked by Gemini safety filters.')
+        error.finishReason = finishReason
+        
+        // Provide user-friendly error message
+        if (finishReason === 'RECITATION') {
+          error.message = 'The search query may have triggered content filters. Please try rephrasing your question or be more specific about what you want to learn.'
+        } else if (finishReason === 'SAFETY') {
+          error.message = 'The content was filtered for safety reasons. Please try a different question.'
+        }
+        
+        throw error
+      }
+    }
+
+    // Check for response text - handle different response structures
+    let responseText: string | null = null
+    
+    if (response.text) {
+      responseText = response.text
+    } else if (response.candidates && response.candidates[0]?.content?.parts) {
+      // Try alternative response structure
+      const parts = response.candidates[0].content.parts
+      responseText = parts.find((part: any) => part.text)?.text || null
+    } else if (response.candidates && (response.candidates[0] as any)?.text) {
+      responseText = (response.candidates[0] as any).text
+    }
+
+    if (!responseText) {
+      // Log the actual response structure for debugging
+      console.error('Gemini response structure:', JSON.stringify(response, null, 2))
+      throw new Error("No text response received from Gemini. The API may have returned an error or empty response.")
+    }
+
+    try {
+      const data = JSON.parse(responseText) as StudyResponse
+      return NextResponse.json(data)
+    } catch (parseError) {
+      console.error('Failed to parse Gemini response as JSON:', parseError)
+      console.error('Response text:', responseText)
+      throw new Error("Invalid JSON response from Gemini. The API may have returned an error.")
+    }
 
   } catch (error: any) {
     console.error("Search API Error:", error)
+    
+    // Check if it's a RECITATION or SAFETY block - provide helpful guidance
+    const finishReason = error?.finishReason
+    if (finishReason === 'RECITATION') {
+      return NextResponse.json(
+        { 
+          error: "The search query triggered content filters. This can happen with certain biblical queries. Please try rephrasing your question or being more specific about what you want to learn.",
+          finishReason: 'RECITATION',
+          suggestion: "Try asking about concepts, themes, or historical context rather than requesting full verse quotations."
+        },
+        { status: 400 }
+      )
+    }
+    
+    if (finishReason === 'SAFETY') {
+      return NextResponse.json(
+        { 
+          error: "The content was filtered for safety reasons. Please try a different question.",
+          finishReason: 'SAFETY'
+        },
+        { status: 400 }
+      )
+    }
     
     // Return more specific error message if available
     const errorMessage = error?.message || "Failed to process search"
