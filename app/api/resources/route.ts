@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { GoogleGenAI } from '@google/genai'
 import { ExternalResource } from '@/types'
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! })
-
 export async function POST(request: NextRequest) {
   try {
     const { topic } = await request.json()
@@ -15,6 +13,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    if (!process.env.GEMINI_API_KEY) {
+      return NextResponse.json(
+        { error: 'Gemini API key is not configured' },
+        { status: 500 }
+      )
+    }
+
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `Find relevant study articles and commentary for: "${topic}". 

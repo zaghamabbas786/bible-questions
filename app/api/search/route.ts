@@ -3,8 +3,6 @@ import { GoogleGenAI, Type } from '@google/genai'
 import { StudyResponse } from '@/types'
 import { createClient } from '@/lib/supabase-server'
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! })
-
 export async function POST(request: NextRequest) {
   try {
     const { query } = await request.json()
@@ -18,11 +16,16 @@ export async function POST(request: NextRequest) {
 
     // Check if Gemini API key is configured
     if (!process.env.GEMINI_API_KEY) {
+      console.error('GEMINI_API_KEY is not set in environment variables')
       return NextResponse.json(
         { error: 'Gemini API key is not configured. Please add GEMINI_API_KEY to your environment variables.' },
         { status: 500 }
       )
     }
+
+    // Initialize AI client inside the handler (not at module level)
+    // This prevents errors if env vars are missing during module load
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
 
     // Check database first - if result exists, return it immediately
     // If database check fails, continue to Gemini API (don't block search)

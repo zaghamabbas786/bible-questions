@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { GoogleGenAI } from '@google/genai'
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! })
-
 export async function POST(request: NextRequest) {
   try {
     const { location, region } = await request.json()
@@ -14,6 +12,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    if (!process.env.GEMINI_API_KEY) {
+      return NextResponse.json(
+        { error: 'Gemini API key is not configured' },
+        { status: 500 }
+      )
+    }
+
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
     const response = await ai.models.generateImages({
       model: 'imagen-4.0-generate-001',
       prompt: `A historically accurate, high-resolution geographical map of the Middle East focusing on the region of ${region} during the biblical era. The map displays realistic terrain, mountains, and rivers with high cartographic detail. A clear, single red pin indicates the location of ${location}. Professional educational style, high resolution, neutral colors.`,
