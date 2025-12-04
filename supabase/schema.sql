@@ -35,6 +35,10 @@ CREATE POLICY "Public searches are viewable by everyone" ON searches
 CREATE POLICY "Anyone can insert searches" ON searches
   FOR INSERT WITH CHECK (true);
 
+-- Policy: Anyone can update searches (to add results after search completes)
+CREATE POLICY "Anyone can update searches" ON searches
+  FOR UPDATE USING (true);
+
 -- Policy: Users can only see their own search history
 -- Note: Since we're using Clerk, we pass user_id directly from the API
 CREATE POLICY "Users can view own searches" ON user_searches

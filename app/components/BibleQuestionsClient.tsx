@@ -10,6 +10,7 @@ import { LoadingIndicator } from './LoadingIndicator'
 import { Interlinear } from './Interlinear'
 import { StudyMap } from './StudyMap'
 import { ResourceSection } from './ResourceSection'
+import DonateButton from './DonateButton'
 
 // Icons
 const SearchIcon = () => (
@@ -315,47 +316,48 @@ export default function BibleQuestionsClient() {
       })
 
       if (!searchResponse.ok) {
-        throw new Error('Search failed')
+        // Try to get error message from response
+        let errorMessage = 'Search failed'
+        try {
+          const errorData = await searchResponse.json()
+          errorMessage = errorData.error || errorMessage
+        } catch {
+          // If response is not JSON, use status text
+          errorMessage = searchResponse.statusText || errorMessage
+        }
+        throw new Error(errorMessage)
       }
 
       const result = await searchResponse.json() as StudyResponse
       setData(result)
       
-      if (result.content?.interlinear) {
-        setActiveInterlinear(result.content.interlinear)
-      }
-
-      if (result.content?.geographicalAnchor) {
-        setMapLoading(true)
-        const anchor = result.content.geographicalAnchor
-        const mapResponse = await fetch('/api/map', {
+      // Save the full result to database for SEO indexing
+      try {
+        await fetch('/api/searches', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ location: anchor.location, region: anchor.region }),
+          body: JSON.stringify({ 
+            query: searchTerm,
+            result: result 
+          }),
         })
-        if (mapResponse.ok) {
-          const mapData = await mapResponse.json()
-          setMapUrl(mapData.imageUrl)
-        }
-        setMapLoading(false)
-      }
-
-      if (result.content?.searchTopic) {
-        const resourcesResponse = await fetch('/api/resources', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ topic: result.content.searchTopic }),
-        })
-        if (resourcesResponse.ok) {
-          const res = await resourcesResponse.json()
-          setResources(res)
-        }
+      } catch (saveError) {
+        // Don't block the UI if saving fails
+        console.error('Failed to save search result:', saveError)
       }
       
-      setLoadingState(LoadingState.SUCCESS)
-    } catch (err) {
-      console.error(err)
-      setError("The ancient texts are momentarily silent. Please check your connection and try again.")
+      // Redirect to SEO page after saving
+      // This ensures users see the full article page and Google can index it
+      const encodedQuery = encodeURIComponent(searchTerm)
+      router.push(`/search/${encodedQuery}`)
+      
+      // Note: The rest of the UI logic (interlinear, map, resources) 
+      // will be handled by the SearchResultPage component
+    } catch (err: any) {
+      console.error('Search error:', err)
+      // Show the actual error message if available, otherwise show generic message
+      const errorMessage = err?.message || "The ancient texts are momentarily silent. Please check your connection and try again."
+      setError(errorMessage)
       setLoadingState(LoadingState.ERROR)
     }
   }
@@ -450,6 +452,16 @@ export default function BibleQuestionsClient() {
       setQuery(q)
       performSearch(q)
     }
+
+    // Check for donation success redirect
+    const donationSuccess = searchParams.get('donation')
+    const paymentIntentId = searchParams.get('payment_intent')
+    const redirectStatus = searchParams.get('redirect_status')
+    
+    if (donationSuccess === 'success' && paymentIntentId && redirectStatus === 'succeeded') {
+      // Payment succeeded via redirect (3D Secure, etc.)
+      // You could show a success notification here
+    }
   }, [searchParams])
 
   useEffect(() => {
@@ -502,6 +514,9 @@ export default function BibleQuestionsClient() {
               </button>
             </div>
           )}
+          
+          {/* Donate Button */}
+          <DonateButton />
           
           {/* Auth Button */}
           {isSignedIn ? (

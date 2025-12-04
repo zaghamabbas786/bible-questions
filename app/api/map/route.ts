@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
       prompt: `A historically accurate, high-resolution geographical map of the Middle East focusing on the region of ${region} during the biblical era. The map displays realistic terrain, mountains, and rivers with high cartographic detail. A clear, single red pin indicates the location of ${location}. Professional educational style, high resolution, neutral colors.`,
       config: {
         numberOfImages: 1,
-        aspectRatio: '21:9',
+        aspectRatio: '16:9',
       },
     })
 
@@ -32,11 +32,41 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json({ imageUrl: null })
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Map API Error:", error)
+    
+    // Try to extract error details from ApiError structure
+    // ApiError can have: error.error.message or error.message or error.toString()
+    let errorMessage = 'Failed to generate map'
+    let errorCode = 500
+    
+    // Check various error structures
+    if (error?.error?.message) {
+      errorMessage = error.error.message
+      errorCode = error.error.code || error.status || 500
+    } else if (error?.message) {
+      errorMessage = error.message
+      errorCode = error.status || error.code || 500
+    } else if (typeof error === 'string') {
+      errorMessage = error
+    }
+    
+    // Check if it's the billing error
+    if (errorMessage.toLowerCase().includes('billed users') || 
+        errorMessage.toLowerCase().includes('billing required')) {
+      return NextResponse.json(
+        { 
+          error: "Map generation requires a billed Google Cloud account. The Imagen API is not available on free tier accounts.",
+          requiresBilling: true
+        },
+        { status: 402 } // 402 Payment Required
+      )
+    }
+    
+    // Return the specific error with appropriate status code
     return NextResponse.json(
-      { error: "Failed to generate map" },
-      { status: 500 }
+      { error: errorMessage },
+      { status: errorCode }
     )
   }
 }

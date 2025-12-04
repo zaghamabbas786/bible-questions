@@ -16,16 +16,33 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Store the exact query as received (no trimming or normalization)
+    const exactQuery = query
+
     const supabase = await createClient()
 
-    // Track in public searches table (for SEO)
-    await supabase
+    // Check if a record with this query already exists (with or without result)
+    // Only create new record if it doesn't exist
+    const { data: existingSearch } = await supabase
       .from('searches')
-      .insert({
-        query,
-        user_id: userId || null,
-        created_at: new Date().toISOString(),
-      })
+      .select('id')
+      .eq('query', exactQuery)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    // Only insert if no record exists for this query
+    // This prevents duplicates when user searches the same thing multiple times
+    if (!existingSearch) {
+      await supabase
+        .from('searches')
+        .insert({
+          query: exactQuery,
+          user_id: userId || null,
+          created_at: new Date().toISOString(),
+        })
+    }
+    // If record exists, we'll update it later when the result comes in
 
     // Track in user searches if authenticated
     if (userId) {
@@ -33,7 +50,7 @@ export async function POST(request: NextRequest) {
         .from('user_searches')
         .insert({
           user_id: userId,
-          query,
+          query: exactQuery,
           created_at: new Date().toISOString(),
         })
     } else {

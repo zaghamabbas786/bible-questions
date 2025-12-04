@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { GoogleGenAI, Type } from '@google/genai'
 import { StudyResponse } from '@/types'
+import { createClient } from '@/lib/supabase-server'
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! })
 
@@ -15,6 +16,41 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check if Gemini API key is configured
+    if (!process.env.GEMINI_API_KEY) {
+      return NextResponse.json(
+        { error: 'Gemini API key is not configured. Please add GEMINI_API_KEY to your environment variables.' },
+        { status: 500 }
+      )
+    }
+
+    // Check database first - if result exists, return it immediately
+    // If database check fails, continue to Gemini API (don't block search)
+    try {
+      const supabase = await createClient()
+      const { data: existingResult, error: dbError } = await supabase
+        .from('searches')
+        .select('result')
+        .eq('query', query)
+        .not('result', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      // If database query succeeded and result exists, return it
+      if (!dbError && existingResult && existingResult.result) {
+        return NextResponse.json(existingResult.result as StudyResponse)
+      }
+      // If database error, log it but continue to Gemini API
+      if (dbError) {
+        console.error('Database check error (continuing to Gemini):', dbError)
+      }
+    } catch (dbCheckError) {
+      // Database check failed - log and continue to Gemini API
+      console.error('Database check exception (continuing to Gemini):', dbCheckError)
+    }
+
+    // Result not in database - call Gemini API
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: query,
@@ -181,11 +217,16 @@ export async function POST(request: NextRequest) {
     const data = JSON.parse(response.text) as StudyResponse
     return NextResponse.json(data)
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Search API Error:", error)
+    
+    // Return more specific error message if available
+    const errorMessage = error?.message || "Failed to process search"
+    const statusCode = error?.status || 500
+    
     return NextResponse.json(
-      { error: "Failed to process search" },
-      { status: 500 }
+      { error: errorMessage },
+      { status: statusCode }
     )
   }
 }

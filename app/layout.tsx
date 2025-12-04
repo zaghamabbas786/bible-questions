@@ -37,7 +37,7 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
-        <body className={`${inter.variable} ${merriweather.variable} ${cinzel.variable} font-sans`}>
+        <body className={`${inter.variable} ${merriweather.variable} ${cinzel.variable} font-sans`} suppressHydrationWarning>
           {children}
         </body>
       </html>
