@@ -13,6 +13,8 @@ const isPublicRoute = createRouteMatcher([
   '/api/create-payment-intent',
   '/api/test-stripe',
   '/api/test-supabase',
+  '/api/test-welcome-email', // Test endpoint for welcome emails (requires auth)
+  '/api/webhooks/clerk', // Clerk webhook for welcome emails
 ])
 
 export default clerkMiddleware(async (auth, req) => {

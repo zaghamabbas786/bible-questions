@@ -60,6 +60,18 @@ const ColumnIcon = () => (
   </svg>
 )
 
+const MenuIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+  </svg>
+)
+
+const CloseIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+  </svg>
+)
+
 const MoonIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
     <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
@@ -221,6 +233,7 @@ export default function BibleQuestionsClient() {
   const [showScrollTop, setShowScrollTop] = useState(false)
   const [searchCount, setSearchCount] = useState(0)
   const [requiresAuth, setRequiresAuth] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   
   // Dark Mode State
   const [isDarkMode, setIsDarkMode] = useState(false)
@@ -475,14 +488,15 @@ export default function BibleQuestionsClient() {
   return (
     <div className="min-h-screen bg-paper text-ink selection:bg-gold selection:text-white flex flex-col transition-colors duration-300">
       {/* Header / Navigation */}
-      <nav className="p-6 flex justify-between items-center max-w-6xl mx-auto w-full">
+      <nav className="p-4 sm:p-6 flex justify-between items-center max-w-6xl mx-auto w-full relative">
         <div className={`flex items-center gap-2 transition-all duration-700 ${isIdle ? 'opacity-0 translate-y-[-20px]' : 'opacity-100'}`}>
-           <span className="text-gold"><BookIcon className="w-6 h-6" /></span>
+           <span className="text-gold"><BookIcon className="w-5 h-5 sm:w-6 sm:h-6" /></span>
            <h1 
-             className="font-display text-xl tracking-widest uppercase font-semibold cursor-pointer hover:text-gold transition-colors" 
+             className="font-display text-lg sm:text-xl tracking-widest uppercase font-semibold cursor-pointer hover:text-gold transition-colors" 
              onClick={() => {
                setQuery('')
                setLoadingState(LoadingState.IDLE)
+               setMobileMenuOpen(false)
                router.push('/')
              }}
            >
@@ -490,7 +504,8 @@ export default function BibleQuestionsClient() {
            </h1>
         </div>
 
-        <div className="flex items-center gap-4">
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex items-center gap-4">
           {!isIdle && loadingState === LoadingState.SUCCESS && data && (
             <div className="flex items-center gap-4">
               <button 
@@ -499,7 +514,7 @@ export default function BibleQuestionsClient() {
                 title="Save Article for SEO/Archive"
               >
                 <FolderIcon />
-                <span className="hidden sm:inline">Save Article</span>
+                <span>Save Article</span>
               </button>
 
               <button 
@@ -508,7 +523,7 @@ export default function BibleQuestionsClient() {
                 title="Copy link to this study"
               >
                 {copied ? <CheckIcon /> : <LinkIcon />}
-                <span className={`${copied ? 'text-gold' : ''} transition-colors hidden sm:inline`}>
+                <span className={copied ? 'text-gold' : ''}>
                   {copied ? 'Copied' : 'Share'}
                 </span>
               </button>
@@ -538,20 +553,126 @@ export default function BibleQuestionsClient() {
             {isDarkMode ? <SunIcon /> : <MoonIcon />}
           </button>
         </div>
+
+        {/* Mobile Menu Button */}
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="md:hidden text-clay hover:text-gold transition-colors p-2 focus:outline-none"
+          aria-label="Toggle menu"
+        >
+          {mobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
+        </button>
+
+        {/* Mobile Menu Overlay */}
+        {mobileMenuOpen && (
+          <>
+            {/* Backdrop */}
+            <div 
+              className="fixed inset-0 bg-ink/50 z-40 md:hidden"
+              onClick={() => setMobileMenuOpen(false)}
+            />
+            
+            {/* Menu Panel */}
+            <div className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-paper border-l border-stone shadow-lg z-50 md:hidden overflow-y-auto">
+              <div className="p-6 space-y-6">
+                {/* Mobile Menu Header */}
+                <div className="flex items-center justify-between border-b border-stone pb-4">
+                  <h2 className="font-display text-lg tracking-widest uppercase font-semibold text-ink">Menu</h2>
+                  <button
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-clay hover:text-gold transition-colors p-1"
+                    aria-label="Close menu"
+                  >
+                    <CloseIcon />
+                  </button>
+                </div>
+
+                {/* Action Buttons (when search result is shown) */}
+                {!isIdle && loadingState === LoadingState.SUCCESS && data && (
+                  <div className="space-y-3 border-b border-stone pb-4">
+                    <button 
+                      onClick={() => {
+                        handleExport()
+                        setMobileMenuOpen(false)
+                      }}
+                      className="w-full flex items-center gap-3 text-sm font-sans uppercase tracking-widest text-clay hover:text-gold transition-colors focus:outline-none py-2"
+                    >
+                      <FolderIcon />
+                      <span>Save Article</span>
+                    </button>
+
+                    <button 
+                      onClick={() => {
+                        handleShare()
+                        setMobileMenuOpen(false)
+                      }}
+                      className="w-full flex items-center gap-3 text-sm font-sans uppercase tracking-widest text-clay hover:text-gold transition-colors focus:outline-none py-2"
+                    >
+                      {copied ? <CheckIcon /> : <LinkIcon />}
+                      <span className={copied ? 'text-gold' : ''}>
+                        {copied ? 'Copied' : 'Share'}
+                      </span>
+                    </button>
+                  </div>
+                )}
+
+                {/* Donate Section */}
+                <div className="border-b border-stone pb-4">
+                  <div className="mb-3">
+                    <DonateButton />
+                  </div>
+                </div>
+
+                {/* Auth Section */}
+                <div className="border-b border-stone pb-4">
+                  {isSignedIn ? (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-sans uppercase tracking-widest text-clay">Account</span>
+                      <UserButton />
+                    </div>
+                  ) : (
+                    <SignInButton mode="modal">
+                      <button 
+                        className="w-full text-sm font-sans uppercase tracking-widest text-clay hover:text-gold transition-colors px-4 py-2 border border-stone hover:border-gold rounded-sm text-left"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Sign In
+                      </button>
+                    </SignInButton>
+                  )}
+                </div>
+
+                {/* Theme Toggle */}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-sans uppercase tracking-widest text-clay">
+                    {isDarkMode ? 'Light Mode' : 'Dark Mode'}
+                  </span>
+                  <button
+                    onClick={toggleDarkMode}
+                    className="text-clay hover:text-gold transition-colors p-2 focus:outline-none"
+                    title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                  >
+                    {isDarkMode ? <SunIcon /> : <MoonIcon />}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </nav>
 
-      <main className="flex-grow flex flex-col items-center w-full max-w-4xl mx-auto px-6 pb-20">
+      <main className="flex-grow flex flex-col items-center w-full max-w-4xl mx-auto px-4 sm:px-6 pb-20">
         
         {/* Hero / Search Section */}
-        <div className={`w-full transition-all duration-700 ease-in-out flex flex-col items-center ${isIdle ? 'mt-[20vh]' : 'mt-4'}`}>
+        <div className={`w-full transition-all duration-700 ease-in-out flex flex-col items-center ${isIdle ? 'mt-[10vh] sm:mt-[15vh] md:mt-[20vh]' : 'mt-4'}`}>
           
           {isIdle && (
-            <div className="mb-12 text-center space-y-4 animate-fade-in">
-              <div className="flex justify-center mb-8 text-gold">
-                <BookIcon className="w-20 h-20 md:w-24 md:h-24" />
+            <div className="mb-8 sm:mb-12 text-center space-y-3 sm:space-y-4 animate-fade-in px-4">
+              <div className="flex justify-center mb-6 sm:mb-8 text-gold">
+                <BookIcon className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24" />
               </div>
-              <h1 className="font-display text-4xl md:text-6xl text-ink tracking-wider">Bible Questions</h1>
-              <p className="font-serif text-clay italic text-lg max-w-md mx-auto">
+              <h1 className="font-display text-3xl sm:text-4xl md:text-6xl text-ink tracking-wider">Bible Questions</h1>
+              <p className="font-serif text-clay italic text-base sm:text-lg max-w-md mx-auto px-2">
                 "Ask, and it will be given to you; seek, and you will find."
               </p>
             </div>
@@ -571,7 +692,7 @@ export default function BibleQuestionsClient() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Enter a verse, concept, or question..."
-              className="w-full bg-surface border-none shadow-md group-hover:shadow-lg transition-shadow duration-300 rounded-sm py-4 pl-6 pr-12 font-serif text-lg text-ink focus:ring-1 focus:ring-gold focus:outline-none placeholder:text-stone/60 placeholder:italic"
+              className="w-full bg-surface border-none shadow-md group-hover:shadow-lg transition-shadow duration-300 rounded-sm py-3 sm:py-4 pl-4 sm:pl-6 pr-10 sm:pr-12 font-serif text-base sm:text-lg text-ink focus:ring-1 focus:ring-gold focus:outline-none placeholder:text-stone/60 placeholder:italic"
             />
             <button 
               type="submit" 
@@ -584,13 +705,13 @@ export default function BibleQuestionsClient() {
 
           {/* This Week's Torah Portion Button - Only visible in IDLE state */}
           {isIdle && (
-            <div className="mt-8 animate-fade-in animation-delay-200">
+            <div className="mt-6 sm:mt-8 animate-fade-in animation-delay-200">
               <button 
                 onClick={handleTorahPortion}
-                className="flex items-center gap-2 px-6 py-2 rounded-full border border-stone hover:border-gold bg-surface/50 hover:bg-surface text-xs font-sans uppercase tracking-widest text-stone hover:text-gold transition-all duration-300 shadow-sm"
+                className="flex items-center gap-2 px-4 sm:px-6 py-2 rounded-full border border-stone hover:border-gold bg-surface/50 hover:bg-surface text-xs font-sans uppercase tracking-widest text-stone hover:text-gold transition-all duration-300 shadow-sm"
               >
                 <AlefIcon />
-                <span>This Week's Torah Portion</span>
+                <span className="whitespace-nowrap">This Week's Torah Portion</span>
               </button>
             </div>
           )}

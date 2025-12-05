@@ -152,24 +152,25 @@ const DonateButton: React.FC = () => {
     <>
       <button
         onClick={handleOpenModal}
-        className="px-6 py-2 bg-gold text-surface font-sans uppercase tracking-widest text-sm hover:bg-gold/90 transition-colors rounded-sm shadow-sm"
+        className="px-4 sm:px-6 py-2 bg-gold text-surface font-sans uppercase tracking-widest text-xs sm:text-sm hover:bg-gold/90 transition-colors rounded-sm shadow-sm whitespace-nowrap"
       >
         Donate
       </button>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-surface rounded-sm shadow-xl max-w-md w-full p-6 relative">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-surface rounded-sm shadow-xl max-w-md w-full p-4 sm:p-6 relative my-auto">
             <button
               onClick={handleClose}
-              className="absolute top-4 right-4 text-stone hover:text-ink transition-colors"
+              className="absolute top-4 right-4 text-stone hover:text-ink transition-colors z-10 p-1"
+              aria-label="Close donation modal"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 sm:w-6 sm:h-6">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
 
-            <h2 className="font-display text-2xl text-ink mb-6">
+            <h2 className="font-display text-xl sm:text-2xl text-ink mb-6 pr-10 sm:pr-12">
               {paymentSuccess ? 'Thank You!' : 'Support Bible Questions'}
             </h2>
 

@@ -20,7 +20,9 @@
     "react-dom": "^19.2.0",
     "react-is": "^18.3.1",
     "recharts": "^3.5.1",
-    "stripe": "^14.9.0"
+    "resend": "^6.5.2",
+    "stripe": "^14.9.0",
+    "svix": "^1.82.0"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",

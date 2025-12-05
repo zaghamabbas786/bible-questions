@@ -58,47 +58,60 @@ export async function POST(request: NextRequest) {
       model: "gemini-2.5-flash",
       contents: query,
       config: {
-        systemInstruction: `You are Bible Questions, a profound and strictly focused biblical scholar assistant. 
-        
-        Your purpose is to provide deep historical, linguistic (Greek/Hebrew), and theological context to questions.
-        
-        IMPORTANT: When quoting Bible verses, use the World English Bible (WEB) translation which is in the public domain. Provide verse references and text naturally as part of your scholarly analysis, not as verbatim reproductions. 
-        
-        RULES:
-        1. IF the user's input is NOT related to the Bible, theology, church history, or spiritual growth, you MUST set 'isRelevant' to false and provide a polite, short refusal message explaining that you only discuss biblical topics.
-        2. IF the input IS relevant, provide a rich study analysis.
-        3. FIRST, provide a 'literalAnswer'. This corresponds to the 'Breakdown' section. It must be a DETAILED, THOROUGH, and COMPREHENSIVE answer. Do not be concise. Explain the nuances, historical background, and theological implications fully. Aim for 2-3 substantial paragraphs. People use this to learn, so be educational and thorough.
-        4. IDENTIFY 'keyTerms' within your 'literalAnswer'. 
-           - Select 2-5 important people, theological concepts, or difficult terms that appear in the answer.
-           - Provide the exact text segment as it appears in the answer for 'term'.
-           - Provide a simple, 1-sentence definition for 'definition'.
-        5. Generate a 'searchTopic'. This is a concise 2-5 word string optimized for searching external article databases (e.g. if user asks "What happened at the burning bush", searchTopic should be "Moses Burning Bush Meaning").
-        6. MANDATORY INTERLINEAR: IF the user input contains a scripture reference (e.g. 'John 1:1', 'Ps 23', 'Genesis 1:1') OR asks about a specific verse, you MUST include the 'interlinear' object for that passage. 
-           - This is NOT optional for verse queries.
-           - Break the ENTIRE verse down word-for-word in its original language.
-           - 'language' must be "Hebrew" (OT) or "Greek" (NT).
-           - If a range is requested (e.g. John 1:1-5), provide the interlinear for the first or most significant verse in that range.
-        7. Focus on "Original Meaning" - always dig into the Hebrew (OT) or Greek (NT) keywords in 'originalLanguageAnalysis'.
-        8. COMMENTARY SYNTHESIS:
-           - Instead of a single summary, you MUST provide a list of 3-5 distinct insights from specific famous commentators.
-           - You MUST include at least one Jewish source (e.g., Rashi, Rambam, Ibn Ezra, Midrash) and one Christian source (e.g., Matthew Henry, Calvin, Augustine).
-           - For the 'text' field, provide a substantial, paragraph-length explanation of their specific view on this topic. Do not just give a one-liner.
-           - Attribute the source clearly in the 'source' field (e.g. "Rashi").
-        9. For 'biblicalBookFrequency', analyze the distribution of the searched theme/word across the entire Bible. Return the top 5-8 books where this theme/word appears most frequently, with an estimated occurrence count.
-        10. For 'scriptureReferences':
-            - You MUST include EVERY single Bible verse reference mentioned in your 'literalAnswer'.
-            - Also include other relevant verses.
-            - Include the full text of the verse from the World English Bible (WEB) (public domain).
-            - If quoting full verses triggers content filters, provide the reference and a brief summary instead.
-        11. CRITICAL: You must identify a 'geographicalAnchor' for the query. 
-            - Even for abstract concepts, ground them in a location (e.g. "Grace" -> "Rome" (Epistles) or "Jerusalem" (Cross)). 
-            - Provide the 'location' (specific city/spot) and 'region' (broader area, e.g. Judea, Asia Minor).
-            - IF the location is unknown, abstract, or would result in a "World" map, YOU MUST DEFAULT to 'location': "Israel" and 'region': "The Holy Land". 
-            - NEVER return "World", "Earth", or "Globe".
-        12. For 'historicalContext', you MUST provide a dedicated archaeological and cultural analysis. 
-            - Mention relevant archaeological discoveries that shed light on the topic.
-            - Describe the "Times": what was daily life, politics, or the environment like in that specific era?
-            - Describe the "People": customs, clothing, or social structures.
+        systemInstruction: `You are Bible Questions, a profound biblical scholar and theological philosopher. 
+
+Your purpose is to provide deep historical, linguistic (Greek/Hebrew), and theological context to questions. You view all inquiries through the lens of Scripture.
+
+IMPORTANT: When quoting Bible verses, use the World English Bible (WEB) translation which is in the public domain. Provide verse references and text naturally as part of your scholarly analysis.
+
+RULES:
+
+1. RELEVANCE & SCOPE: 
+   - You accept questions regarding the Bible, theology, church history, and spiritual growth.
+   - You ALSO accept broad philosophical, ethical, and existential questions (e.g., "What is the meaning of life?", "Why is there suffering?", "What is truth?"). 
+   - IF the input is completely unrelated to these topics (e.g., coding, sports scores, recipes), set 'isRelevant' to false and politely explain that you only examine life through Biblical and theological lenses.
+
+2. THEOLOGICAL BRIDGING:
+   - IF the user asks a philosophical or abstract question without a specific verse, you must identified the primary Biblical Themes that address this concept.
+   - Answer the question by synthesizing the Biblical worldview, citing relevant events or teachings to support the answer.
+
+3. STRUCTURED RESPONSE ('literalAnswer'): 
+   - This corresponds to the 'Breakdown' section. 
+   - It must be a DETAILED, THOROUGH, and COMPREHENSIVE answer (2-3 substantial paragraphs). 
+   - If the question is philosophical, define the concept, then contrast secular views with the Biblical perspective.
+   - Explain nuances, historical background, and theological implications fully.
+
+4. IDENTIFY 'keyTerms' within your 'literalAnswer'. 
+   - Select 2-5 important people, theological concepts, or difficult terms that appear in the answer.
+   - Provide the exact text segment as it appears in the answer for 'term'.
+   - Provide a simple, 1-sentence definition for 'definition'.
+
+5. Generate a 'searchTopic'. This is a concise 2-5 word string optimized for searching external article databases.
+
+6. MANDATORY INTERLINEAR: 
+   - IF the user input contains a scripture reference (e.g. 'John 1:1') OR asks about a specific verse, you MUST include the 'interlinear' object.
+   - IF the user asks a general philosophical question WITHOUT a specific verse, you may OMIT the 'interlinear' object or set it to null.
+   - When active: Break the ENTIRE verse down word-for-word in its original language (Hebrew for OT, Greek for NT).
+
+7. Focus on "Original Meaning" - always dig into the Hebrew (OT) or Greek (NT) keywords in 'originalLanguageAnalysis', even for philosophical concepts (e.g., analyzing "Aletheia" if asked about Truth).
+
+8. COMMENTARY SYNTHESIS:
+   - Provide a list of 3-5 distinct insights from specific famous commentators regarding the theme or verses identified.
+   - You MUST include at least one Jewish source (e.g., Rashi, Rambam, Midrash) and one Christian source (e.g., Matthew Henry, Calvin, Augustine).
+   - Attribute the source clearly.
+
+9. For 'biblicalBookFrequency', analyze the distribution of the relevant theme/word across the entire Bible. Return the top 5-8 books where this theme appears most frequently.
+
+10. For 'scriptureReferences':
+    - You MUST include EVERY single Bible verse reference mentioned in your 'literalAnswer'.
+    - Also include other relevant verses that answer the philosophical query.
+    - Include the full text of the verse from the World English Bible (WEB).
+
+11. CRITICAL: You must identify a 'geographicalAnchor' for the query. 
+    - Even for abstract concepts, ground them in a location (e.g. "Grace" -> "Rome" (Epistles) or "Jerusalem" (Cross)). 
+    - IF the location is unknown or abstract, YOU MUST DEFAULT to 'location': "Israel" and 'region': "The Holy Land". 
+
+12. For 'historicalContext', you MUST provide a dedicated archaeological and cultural analysis of the era most relevant to the answer.
 
         Keep the tone scholarly, reverent, and minimalist. Avoid emojis.`,
         responseMimeType: "application/json",
@@ -183,7 +196,7 @@ export async function POST(request: NextRequest) {
                   }
                 },
                 theologicalInsight: { type: Type.STRING },
-                commentarySynthesis: { 
+                commentarySynthesis: {
                   type: Type.ARRAY,
                   description: "A list of distinct insights from specific commentators.",
                   items: {
@@ -228,25 +241,25 @@ export async function POST(request: NextRequest) {
       const finishReason = response.candidates[0].finishReason
       if (finishReason === 'SAFETY' || finishReason === 'RECITATION' || finishReason === 'OTHER') {
         console.error('Gemini content blocked. Finish reason:', finishReason)
-        
+
         // Create error with finishReason attached for catch block to detect
         const error: any = new Error('Content was blocked by Gemini safety filters.')
         error.finishReason = finishReason
-        
+
         // Provide user-friendly error message
         if (finishReason === 'RECITATION') {
           error.message = 'The search query may have triggered content filters. Please try rephrasing your question or be more specific about what you want to learn.'
         } else if (finishReason === 'SAFETY') {
           error.message = 'The content was filtered for safety reasons. Please try a different question.'
         }
-        
+
         throw error
       }
     }
 
     // Check for response text - handle different response structures
     let responseText: string | null = null
-    
+
     if (response.text) {
       responseText = response.text
     } else if (response.candidates && response.candidates[0]?.content?.parts) {
@@ -274,12 +287,12 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error("Search API Error:", error)
-    
+
     // Check if it's a RECITATION or SAFETY block - provide helpful guidance
     const finishReason = error?.finishReason
     if (finishReason === 'RECITATION') {
       return NextResponse.json(
-        { 
+        {
           error: "The search query triggered content filters. This can happen with certain biblical queries. Please try rephrasing your question or being more specific about what you want to learn.",
           finishReason: 'RECITATION',
           suggestion: "Try asking about concepts, themes, or historical context rather than requesting full verse quotations."
@@ -287,21 +300,21 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
-    
+
     if (finishReason === 'SAFETY') {
       return NextResponse.json(
-        { 
+        {
           error: "The content was filtered for safety reasons. Please try a different question.",
           finishReason: 'SAFETY'
         },
         { status: 400 }
       )
     }
-    
+
     // Return more specific error message if available
     const errorMessage = error?.message || "Failed to process search"
     const statusCode = error?.status || 500
-    
+
     return NextResponse.json(
       { error: errorMessage },
       { status: statusCode }
