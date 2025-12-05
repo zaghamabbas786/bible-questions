@@ -105,15 +105,15 @@ export default function SearchResultPage({ query, result }: SearchResultPageProp
       <header className="bg-surface border-b border-stone sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <a href="/" className="text-xl font-display text-ink hover:text-gold transition-colors">
+            <Link href="/" className="text-xl font-display text-ink hover:text-gold transition-colors">
               Bible Questions
-            </a>
-            <a
-              href={`/?q=${encodeURIComponent(query)}`}
+            </Link>
+            <Link
+              href="/"
               className="text-sm text-ink/80 hover:text-gold transition-colors"
             >
               ← Back to Search
-            </a>
+            </Link>
           </div>
         </div>
       </header>

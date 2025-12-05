@@ -464,6 +464,15 @@ export default function BibleQuestionsClient() {
     if (q) {
       setQuery(q)
       performSearch(q)
+    } else {
+      // Clear search when no query parameter
+      setQuery('')
+      setData(null)
+      setLoadingState(LoadingState.IDLE)
+      setError(null)
+      setResources([])
+      setMapUrl(null)
+      setActiveInterlinear(null)
     }
 
     // Check for donation success redirect
