@@ -461,9 +461,25 @@ export default function BibleQuestionsClient() {
 
   useEffect(() => {
     const q = searchParams.get('q')
+    const isBackNavigation = searchParams.get('back') === '1'
+    
+    // Clean up the URL by removing the 'back' parameter if present
+    // if (isBackNavigation && typeof window !== 'undefined') {
+    //   const url = new URL(window.location.href)
+    //   url.searchParams.delete('back')
+    //   window.history.replaceState({}, '', url.toString())
+    // }
+    
     if (q) {
       setQuery(q)
-      performSearch(q)
+      // If this is a back navigation, just populate the query without searching
+      // This prevents infinite redirect loops and preserves the query in the input
+      if (!isBackNavigation) {
+        // Normal search flow - perform the search
+        performSearch(q)
+      }
+      // If isBackNavigation, we just set the query and don't search
+      // The user can see their query and search again if needed
     } else {
       // Clear search when no query parameter
       setQuery('')

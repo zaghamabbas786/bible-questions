@@ -109,7 +109,7 @@ export default function SearchResultPage({ query, result }: SearchResultPageProp
               Bible Questions
             </Link>
             <Link
-              href="/"
+              href={`/?q=${encodeURIComponent(query)}&back=1`}
               className="text-sm text-ink/80 hover:text-gold transition-colors"
             >
               ← Back to Search
@@ -303,4 +303,3 @@ export default function SearchResultPage({ query, result }: SearchResultPageProp
     </div>
   )
 }
-
