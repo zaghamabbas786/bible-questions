@@ -60,11 +60,11 @@ export default function SearchResultPage({ query, result }: SearchResultPageProp
 
   if (!result.isRelevant && result.refusalMessage) {
     return (
-      <div className="min-h-screen bg-stone-50 py-12 px-4">
+      <div className="min-h-screen bg-paper py-12 px-4">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white p-8 rounded-lg border border-stone-200">
+          <div className="bg-surface p-8 rounded-lg border border-stone">
             <h1 className="text-2xl font-display text-ink mb-4">{query}</h1>
-            <p className="text-stone-600">{result.refusalMessage}</p>
+            <p className="text-ink/80">{result.refusalMessage}</p>
           </div>
         </div>
       </div>
@@ -73,11 +73,11 @@ export default function SearchResultPage({ query, result }: SearchResultPageProp
 
   if (!result.content) {
     return (
-      <div className="min-h-screen bg-stone-50 py-12 px-4">
+      <div className="min-h-screen bg-paper py-12 px-4">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white p-8 rounded-lg border border-stone-200">
+          <div className="bg-surface p-8 rounded-lg border border-stone">
             <h1 className="text-2xl font-display text-ink mb-4">{query}</h1>
-            <p className="text-stone-600">No content available for this query.</p>
+            <p className="text-ink/80">No content available for this query.</p>
           </div>
         </div>
       </div>
@@ -99,9 +99,9 @@ export default function SearchResultPage({ query, result }: SearchResultPageProp
   } = result.content
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen bg-paper">
       {/* Header */}
-      <header className="bg-white border-b border-stone-200 sticky top-0 z-50">
+      <header className="bg-surface border-b border-stone sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <a href="/" className="text-xl font-display text-ink hover:text-gold transition-colors">
@@ -109,7 +109,7 @@ export default function SearchResultPage({ query, result }: SearchResultPageProp
             </a>
             <a
               href={`/?q=${encodeURIComponent(query)}`}
-              className="text-sm text-stone-600 hover:text-gold transition-colors"
+              className="text-sm text-ink/80 hover:text-gold transition-colors"
             >
               ← Back to Search
             </a>
@@ -127,7 +127,7 @@ export default function SearchResultPage({ query, result }: SearchResultPageProp
             BREAKDOWN
           </h2>
           <div className="prose prose-lg max-w-none">
-            <p className="text-stone-700 leading-relaxed whitespace-pre-line">
+            <p className="text-ink leading-relaxed whitespace-pre-line">
               {literalAnswer}
             </p>
           </div>
@@ -143,10 +143,10 @@ export default function SearchResultPage({ query, result }: SearchResultPageProp
               {keyTerms.map((term, idx) => (
                 <div
                   key={idx}
-                  className="bg-white p-4 rounded border border-stone-200 hover:border-gold transition-colors"
+                  className="bg-surface p-4 rounded border border-stone hover:border-gold transition-colors"
                 >
                   <h3 className="font-semibold text-ink mb-1">{term.term}</h3>
-                  <p className="text-sm text-stone-600">{term.definition}</p>
+                  <p className="text-sm text-ink/80">{term.definition}</p>
                 </div>
               ))}
             </div>
@@ -161,9 +161,9 @@ export default function SearchResultPage({ query, result }: SearchResultPageProp
             </h2>
             <div className="space-y-4">
               {scriptureReferences.map((ref, idx) => (
-                <div key={idx} className="bg-white p-4 rounded border border-stone-200">
+                <div key={idx} className="bg-surface p-4 rounded border border-stone">
                   <h3 className="font-semibold text-ink mb-2">{ref.reference}</h3>
-                  <p className="text-stone-700 italic">{ref.text}</p>
+                  <p className="text-ink/90 italic">{ref.text}</p>
                 </div>
               ))}
             </div>
@@ -201,7 +201,7 @@ export default function SearchResultPage({ query, result }: SearchResultPageProp
               HISTORICAL CONTEXT
             </h2>
             <div className="prose prose-lg max-w-none">
-              <p className="text-stone-700 leading-relaxed whitespace-pre-line">
+              <p className="text-ink leading-relaxed whitespace-pre-line">
                 {historicalContext}
               </p>
             </div>
@@ -215,7 +215,7 @@ export default function SearchResultPage({ query, result }: SearchResultPageProp
               THEOLOGICAL INSIGHT
             </h2>
             <div className="prose prose-lg max-w-none">
-              <p className="text-stone-700 leading-relaxed whitespace-pre-line">
+              <p className="text-ink leading-relaxed whitespace-pre-line">
                 {theologicalInsight}
               </p>
             </div>
@@ -230,11 +230,11 @@ export default function SearchResultPage({ query, result }: SearchResultPageProp
             </h2>
             <div className="space-y-6">
               {commentarySynthesis.map((commentary, idx) => (
-                <div key={idx} className="bg-white p-6 rounded border border-stone-200">
+                <div key={idx} className="bg-surface p-6 rounded border border-stone">
                   <h3 className="font-semibold text-ink mb-2">
                     {commentary.source} ({commentary.tradition})
                   </h3>
-                  <p className="text-stone-700 leading-relaxed whitespace-pre-line">
+                  <p className="text-ink leading-relaxed whitespace-pre-line">
                     {commentary.text}
                   </p>
                 </div>
@@ -275,7 +275,7 @@ export default function SearchResultPage({ query, result }: SearchResultPageProp
         )}
 
         {/* Footer */}
-        <footer className="mt-12 pt-8 border-t border-stone-200 text-center text-sm text-stone-500">
+        <footer className="mt-12 pt-8 border-t border-stone text-center text-sm text-ink/70">
           <p>
             This content was generated by Bible Questions. For more biblical studies,{' '}
             <a href="/" className="text-gold hover:underline">
