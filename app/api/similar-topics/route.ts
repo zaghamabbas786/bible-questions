@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
           // Check for word overlap in search topics
           const currentWords = currentSearchTopic.split(/\s+/)
           const otherWords = otherSearchTopic.split(/\s+/)
-          const commonWords = currentWords.filter(w => otherWords.includes(w) && w.length > 3)
+          const commonWords = currentWords.filter((w: string) => otherWords.includes(w) && w.length > 3)
           score += commonWords.length * 3
         }
 
@@ -73,9 +73,9 @@ export async function POST(request: NextRequest) {
 
         // Score based on query word overlap (excluding common words)
         const commonWords = ['what', 'is', 'the', 'of', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'with', 'by']
-        const currentWords = currentQuery.split(/\s+/).filter(w => w.length > 2 && !commonWords.includes(w))
-        const otherWords = otherQuery.split(/\s+/).filter(w => w.length > 2 && !commonWords.includes(w))
-        const commonQueryWords = currentWords.filter(w => otherWords.includes(w))
+        const currentWords = currentQuery.split(/\s+/).filter((w: string) => w.length > 2 && !commonWords.includes(w))
+        const otherWords = otherQuery.split(/\s+/).filter((w: string) => w.length > 2 && !commonWords.includes(w))
+        const commonQueryWords = currentWords.filter((w: string) => otherWords.includes(w))
         score += commonQueryWords.length * 2
 
         // Boost score for recent searches
