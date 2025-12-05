@@ -10,6 +10,7 @@ const isPublicRoute = createRouteMatcher([
   '/api/resources',
   '/api/interlinear',
   '/api/search-count',
+  '/api/similar-topics',
   '/api/create-payment-intent',
   '/api/test-stripe',
   '/api/test-supabase',

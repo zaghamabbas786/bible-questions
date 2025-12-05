@@ -8,6 +8,7 @@ import { FrequencyChart } from './RelevanceChart'
 import { Interlinear } from './Interlinear'
 import { StudyMap } from './StudyMap'
 import { ResourceSection } from './ResourceSection'
+import SimilarTopicsSidebar from './SimilarTopicsSidebar'
 
 interface SearchResultPageProps {
   query: string
@@ -102,7 +103,7 @@ export default function SearchResultPage({ query, result }: SearchResultPageProp
     <div className="min-h-screen bg-paper">
       {/* Header */}
       <header className="bg-surface border-b border-stone sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto px-4 py-4">
+        <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <a href="/" className="text-xl font-display text-ink hover:text-gold transition-colors">
               Bible Questions
@@ -117,7 +118,10 @@ export default function SearchResultPage({ query, result }: SearchResultPageProp
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-3">
         {/* Query Title */}
         <h1 className="text-4xl font-display text-ink mb-8">{query}</h1>
 
@@ -284,6 +288,17 @@ export default function SearchResultPage({ query, result }: SearchResultPageProp
             .
           </p>
         </footer>
+          </div>
+
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <SimilarTopicsSidebar
+              currentQuery={query}
+              searchTopic={searchTopic}
+              keyTerms={keyTerms}
+            />
+          </div>
+        </div>
       </main>
     </div>
   )
