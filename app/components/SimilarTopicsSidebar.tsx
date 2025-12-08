@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { trackSimilarTopicClick } from '@/lib/analytics'
 
 interface SimilarTopic {
   query: string
@@ -85,6 +86,7 @@ export default function SimilarTopicsSidebar({ currentQuery, searchTopic, keyTer
           <li key={index}>
             <Link
               href={`/search/${encodeURIComponent(topic.query)}`}
+              onClick={() => trackSimilarTopicClick(topic.query)}
               className="block p-3 rounded border border-stone hover:border-gold hover:bg-stone/5 transition-all group"
             >
               <p className="text-sm font-serif text-ink group-hover:text-gold transition-colors line-clamp-2">

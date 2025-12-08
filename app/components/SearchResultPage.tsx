@@ -9,6 +9,7 @@ import { Interlinear } from './Interlinear'
 import { StudyMap } from './StudyMap'
 import { ResourceSection } from './ResourceSection'
 import SimilarTopicsSidebar from './SimilarTopicsSidebar'
+import { trackSearchResultView } from '@/lib/analytics'
 
 interface SearchResultPageProps {
   query: string
@@ -19,6 +20,11 @@ export default function SearchResultPage({ query, result }: SearchResultPageProp
   const [mapUrl, setMapUrl] = useState<string | null>(null)
   const [mapLoading, setMapLoading] = useState(false)
   const [resources, setResources] = useState<ExternalResource[]>([])
+
+  // Track page view in Google Analytics
+  useEffect(() => {
+    trackSearchResultView(query)
+  }, [query])
 
   // Fetch map if geographical anchor exists
   useEffect(() => {

@@ -11,6 +11,7 @@ import { Interlinear } from './Interlinear'
 import { StudyMap } from './StudyMap'
 import { ResourceSection } from './ResourceSection'
 import DonateButton from './DonateButton'
+import { trackSearch } from '@/lib/analytics'
 
 // Icons
 const SearchIcon = () => (
@@ -343,6 +344,9 @@ export default function BibleQuestionsClient() {
 
       const result = await searchResponse.json() as StudyResponse
       setData(result)
+      
+      // Track search in Google Analytics
+      trackSearch(searchTerm)
       
       // Save the full result to database for SEO indexing
       try {

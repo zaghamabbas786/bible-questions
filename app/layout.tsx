@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter, Merriweather, Cinzel } from 'next/font/google'
 import { ClerkProvider } from '@clerk/nextjs'
+import GoogleAnalytics from './components/GoogleAnalytics'
 import './globals.css'
 
 const inter = Inter({ 
@@ -39,6 +40,7 @@ export default function RootLayout({
       <html lang="en" suppressHydrationWarning>
         <body className={`${inter.variable} ${merriweather.variable} ${cinzel.variable} font-sans`} suppressHydrationWarning>
           {children}
+          <GoogleAnalytics />
         </body>
       </html>
     </ClerkProvider>
