@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { createClient } from '@/lib/supabase-server'
 import { cookies } from 'next/headers'
+import { generateUniqueSlug } from '@/lib/slugify'
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,10 +35,19 @@ export async function POST(request: NextRequest) {
     // Only insert if no record exists for this query
     // This prevents duplicates when user searches the same thing multiple times
     if (!existingSearch) {
+      // Generate unique slug for the new search
+      const { data: existingSlugs } = await supabase
+        .from('searches')
+        .select('slug')
+      
+      const slugs = existingSlugs?.map(s => s.slug) || []
+      const slug = generateUniqueSlug(exactQuery, slugs)
+
       await supabase
         .from('searches')
         .insert({
           query: exactQuery,
+          slug,
           user_id: userId || null,
           created_at: new Date().toISOString(),
         })

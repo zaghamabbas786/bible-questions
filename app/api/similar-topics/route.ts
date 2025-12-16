@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     // Get all searches with results
     const { data: allSearches, error } = await supabase
       .from('searches')
-      .select('query, result, created_at')
+      .select('query, slug, result, created_at')
       .not('result', 'is', null)
       .neq('query', query) // Exclude the current query
       .order('created_at', { ascending: false })
@@ -88,6 +88,7 @@ export async function POST(request: NextRequest) {
 
         return {
           query: search.query,
+          slug: search.slug,
           score,
           created_at: search.created_at
         }

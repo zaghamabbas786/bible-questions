@@ -5,28 +5,27 @@ import { StudyResponse } from '@/types'
 import SearchResultPage from '@/app/components/SearchResultPage'
 
 interface PageProps {
-  params: Promise<{ query: string }>
+  params: Promise<{ slug: string }>
 }
 
 // Generate metadata for SEO
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { query } = await params
-  const decodedQuery = decodeURIComponent(query)
+  const { slug } = await params
   
   const supabase = createPublicClient()
   const { data } = await supabase
     .from('searches')
-    .select('result, query')
-    .eq('query', decodedQuery)
+    .select('result, query, slug')
+    .eq('slug', slug)
     .not('result', 'is', null)
     .order('created_at', { ascending: false })
     .limit(1)
-    .maybeSingle() // Use maybeSingle to handle no record found gracefully
+    .maybeSingle()
 
   if (!data || !data.result) {
     return {
-      title: `${decodedQuery} - Bible Questions`,
-      description: `Biblical study and analysis of ${decodedQuery}`,
+      title: `${slug.replace(/-/g, ' ')} - Bible Questions`,
+      description: `Biblical study and analysis of ${slug.replace(/-/g, ' ')}`,
     }
   }
 
@@ -34,16 +33,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const content = result.content
   const description = content?.literalAnswer 
     ? content.literalAnswer.substring(0, 160).replace(/\n/g, ' ') + '...'
-    : `Biblical study and analysis of ${decodedQuery}`
+    : `Biblical study and analysis of ${data.query}`
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yourdomain.com'
-  const canonicalUrl = `${baseUrl}/search/${encodeURIComponent(decodedQuery)}`
+  const canonicalUrl = `${baseUrl}/question/${slug}`
 
   return {
-    title: `${decodedQuery} - Bible Questions | Biblical Study & Analysis`,
+    title: `${data.query} - Bible Questions | Biblical Study & Analysis`,
     description,
     openGraph: {
-      title: `${decodedQuery} - Bible Questions`,
+      title: `${data.query} - Bible Questions`,
       description,
       type: 'article',
       siteName: 'Bible Questions',
@@ -51,7 +50,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${decodedQuery} - Bible Questions`,
+      title: `${data.query} - Bible Questions`,
       description,
     },
     alternates: {
@@ -70,19 +69,18 @@ export async function generateStaticParams() {
 // ISR: Revalidate every 24 hours (86400 seconds)
 export const revalidate = 86400
 
-export default async function SearchPage({ params }: PageProps) {
-  const { query } = await params
-  const decodedQuery = decodeURIComponent(query)
+export default async function QuestionPage({ params }: PageProps) {
+  const { slug } = await params
 
   const supabase = createPublicClient()
   const { data, error } = await supabase
     .from('searches')
-    .select('result, query, created_at')
-    .eq('query', decodedQuery)
+    .select('result, query, created_at, slug')
+    .eq('slug', slug)
     .not('result', 'is', null)
     .order('created_at', { ascending: false })
     .limit(1)
-    .maybeSingle() // Use maybeSingle to handle no record found gracefully
+    .maybeSingle()
 
   if (error || !data || !data.result) {
     notFound()
@@ -94,7 +92,7 @@ export default async function SearchPage({ params }: PageProps) {
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'Article',
-    headline: decodedQuery,
+    headline: data.query,
     description: result.content?.literalAnswer?.substring(0, 200) || '',
     author: {
       '@type': 'Organization',
@@ -108,7 +106,7 @@ export default async function SearchPage({ params }: PageProps) {
     dateModified: data.created_at,
     mainEntityOfPage: {
       '@type': 'WebPage',
-      '@id': `${process.env.NEXT_PUBLIC_SITE_URL || 'https://yourdomain.com'}/search/${encodeURIComponent(decodedQuery)}`,
+      '@id': `${process.env.NEXT_PUBLIC_SITE_URL || 'https://yourdomain.com'}/question/${slug}`,
     },
   }
 
@@ -118,7 +116,7 @@ export default async function SearchPage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <SearchResultPage query={decodedQuery} result={result} />
+      <SearchResultPage query={data.query} result={result} />
     </>
   )
 }

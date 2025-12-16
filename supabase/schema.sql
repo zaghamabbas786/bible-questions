@@ -2,6 +2,7 @@
 CREATE TABLE IF NOT EXISTS searches (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   query TEXT NOT NULL,
+  slug TEXT NOT NULL UNIQUE,
   result JSONB,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   user_id TEXT -- Optional: track if user was logged in
@@ -18,6 +19,7 @@ CREATE TABLE IF NOT EXISTS user_searches (
 -- Create index on searches for faster queries
 CREATE INDEX IF NOT EXISTS idx_searches_created_at ON searches(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_searches_query ON searches(query);
+CREATE INDEX IF NOT EXISTS idx_searches_slug ON searches(slug);
 
 -- Create index on user_searches
 CREATE INDEX IF NOT EXISTS idx_user_searches_user_id ON user_searches(user_id);

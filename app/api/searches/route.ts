@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
 import { auth } from '@clerk/nextjs/server'
+import { generateUniqueSlug } from '@/lib/slugify'
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,7 +21,7 @@ export async function POST(request: NextRequest) {
     // If it exists with a result, don't create duplicate - just return it
     const { data: existingComplete } = await supabase
       .from('searches')
-      .select('id, result')
+      .select('id, result, slug')
       .eq('query', query)
       .not('result', 'is', null)
       .order('created_at', { ascending: false })
@@ -73,11 +74,21 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({ success: true, data, updated: true })
     } else {
+      // Generate unique slug for the new search
+      // First, get existing slugs to ensure uniqueness
+      const { data: existingSlugs } = await supabase
+        .from('searches')
+        .select('slug')
+      
+      const slugs = existingSlugs?.map(s => s.slug) || []
+      const slug = generateUniqueSlug(query, slugs)
+
       // Insert new record only if no existing record found
       const { data, error } = await supabase
         .from('searches')
         .insert({
           query,
+          slug,
           result: result || null,
           user_id: userId || null,
           created_at: new Date().toISOString(),

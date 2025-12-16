@@ -349,8 +349,9 @@ export default function BibleQuestionsClient() {
       trackSearch(searchTerm)
       
       // Save the full result to database for SEO indexing
+      let slug: string | null = null
       try {
-        await fetch('/api/searches', {
+        const saveResponse = await fetch('/api/searches', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
@@ -358,15 +359,27 @@ export default function BibleQuestionsClient() {
             result: result 
           }),
         })
+        
+        if (saveResponse.ok) {
+          const saveData = await saveResponse.json()
+          // Get the slug from the API response
+          slug = saveData.data?.slug
+        }
       } catch (saveError) {
         // Don't block the UI if saving fails
         console.error('Failed to save search result:', saveError)
       }
       
-      // Redirect to SEO page after saving
-      // This ensures users see the full article page and Google can index it
-      const encodedQuery = encodeURIComponent(searchTerm)
-      router.push(`/search/${encodedQuery}`)
+      // Redirect to SEO-friendly page using slug
+      // Using /question instead of /search to avoid Google treating it as search results
+      // This ensures users see the full article page with a clean URL that Google can index
+      if (slug) {
+        router.push(`/question/${slug}`)
+      } else {
+        // Fallback: if we couldn't get the slug, stay on the current page
+        console.warn('No slug received from API, staying on current page')
+        setLoadingState(LoadingState.SUCCESS)
+      }
       
       // Note: The rest of the UI logic (interlinear, map, resources) 
       // will be handled by the SearchResultPage component

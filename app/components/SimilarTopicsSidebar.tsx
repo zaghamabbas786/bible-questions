@@ -6,6 +6,7 @@ import { trackSimilarTopicClick } from '@/lib/analytics'
 
 interface SimilarTopic {
   query: string
+  slug: string
   score: number
   created_at: string
 }
@@ -85,7 +86,7 @@ export default function SimilarTopicsSidebar({ currentQuery, searchTopic, keyTer
         {similarTopics.map((topic, index) => (
           <li key={index}>
             <Link
-              href={`/search/${encodeURIComponent(topic.query)}`}
+              href={`/question/${topic.slug}`}
               onClick={() => trackSimilarTopicClick(topic.query)}
               className="block p-3 rounded border border-stone hover:border-gold hover:bg-stone/5 transition-all group"
             >
