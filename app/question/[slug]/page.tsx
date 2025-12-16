@@ -116,7 +116,7 @@ export default async function QuestionPage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <SearchResultPage query={data.query} result={result} />
+      <SearchResultPage key={slug} query={data.query} result={result} />
     </>
   )
 }
