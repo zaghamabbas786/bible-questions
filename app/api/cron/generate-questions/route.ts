@@ -141,12 +141,21 @@ export async function GET(request: NextRequest) {
     })
 
     // Step 6: Update progress in database
+    // Re-read current status to avoid race condition with stop button
+    const { data: latestConfig } = await supabase
+      .from('admin_config')
+      .select('value')
+      .eq('key', 'generation_status')
+      .single()
+    
+    const latestStatus = latestConfig?.value as typeof status
     const newProgress = status.progress + savedCount
+    
     await supabase
       .from('admin_config')
       .update({ 
         value: { 
-          ...status, 
+          ...latestStatus,  // Use the LATEST status from database
           progress: newProgress,
           last_run_at: new Date().toISOString()
         } 
