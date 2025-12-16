@@ -9,6 +9,9 @@ const nextConfig = {
     // Temporarily ignore build errors for sitemap route
     ignoreBuildErrors: true,
   },
+  experimental: {
+    scrollRestoration: true,
+  },
 }
 
 module.exports = nextConfig

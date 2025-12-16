@@ -21,10 +21,10 @@ export default function SearchResultPage({ query, result }: SearchResultPageProp
   const [mapLoading, setMapLoading] = useState(false)
   const [resources, setResources] = useState<ExternalResource[]>([])
 
-  // Scroll to top when component mounts (e.g., when navigating to a new question)
+  // Scroll to top when query changes (navigating to a new question)
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [])
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }, [query])
 
   // Track page view in Google Analytics
   useEffect(() => {
