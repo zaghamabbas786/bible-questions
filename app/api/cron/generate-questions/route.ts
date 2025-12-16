@@ -64,13 +64,24 @@ export async function GET(request: NextRequest) {
       last_run_at?: string | null
     }
 
+    console.log('📖 Database status:', JSON.stringify(status, null, 2))
+
     // Step 2: If not generating, return early
     if (!status.is_generating) {
-      console.log('⏸️  Generation is paused, skipping...')
+      console.log('⏸️  Generation is paused, skipping...', { 
+        is_generating: status.is_generating, 
+        progress: status.progress, 
+        target: status.target 
+      })
       return NextResponse.json({ 
         success: true, 
         message: 'Generation paused',
-        skipped: true 
+        skipped: true,
+        status: {
+          is_generating: status.is_generating,
+          progress: status.progress,
+          target: status.target
+        }
       })
     }
 

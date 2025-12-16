@@ -69,6 +69,7 @@ export default function AdminPage() {
       const response = await fetch('/api/admin/stats')
       if (response.ok) {
         const data = await response.json()
+        console.log('📊 Stats fetched:', { isRunning: data.isRunning, progress: data.progress, target: data.target })
         setStats(data)
         setIsGenerating(data.isRunning)
       }
@@ -106,6 +107,7 @@ export default function AdminPage() {
   const handleStop = async () => {
     try {
       setLoading(true)
+      console.log('🛑 Stopping generation...')
       const response = await fetch('/api/admin/control', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -113,11 +115,12 @@ export default function AdminPage() {
       })
       
       const data = await response.json()
+      console.log('🛑 Stop response:', data)
       
       if (data.success) {
         setIsGenerating(false)
         alert('✅ Generation stopped!')
-        fetchStats()
+        await fetchStats()
       } else {
         alert(`❌ ${data.error || 'Failed to stop generation'}`)
       }
