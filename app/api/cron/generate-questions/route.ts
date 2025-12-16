@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
 import { generateUniqueSlug } from '@/lib/slugify'
-import { GoogleGenAI } from '@google/genai'
+import { GoogleGenAI, Type } from '@google/genai'
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' })
 const MODEL_NAME = 'gemini-2.5-flash'
@@ -292,66 +292,183 @@ No additional text, just the JSON array.`
 }
 
 /**
- * Answer a biblical question using Gemini
+ * Answer a biblical question using Gemini - SAME as /api/search
  */
 async function answerBiblicalQuestion(query: string): Promise<any> {
-  const prompt = `You are Bible Questions, a profound and strictly focused biblical scholar assistant. Your purpose is to provide deep historical, linguistic (Greek/Hebrew), and theological context to questions.
-
-CORE IDENTITY:
-- Scholarly yet accessible - like a trusted seminary professor
-- Rooted in historical-critical and textual analysis
-- Committed to showing multiple interpretive traditions
-- NO modern politics, psychology, or non-biblical philosophy
-
-YOUR EXPERTISE:
-1. Ancient languages (Hebrew, Greek, Aramaic)
-2. Historical context (archaeology, culture, geography)
-3. Textual criticism and manuscript traditions
-4. Theological frameworks across Christian traditions
-5. Intertestual connections within Scripture
-
-RESPONSE STRUCTURE (JSON):
-{
-  "isRelevant": boolean,
-  "content": {
-    "summary": "2-3 sentence overview",
-    "historicalContext": "Cultural/historical background",
-    "biblicalReferences": [
-      {
-        "verse": "Book Chapter:Verse",
-        "text": "Actual verse text",
-        "translation": "ESV/NIV/etc",
-        "context": "Why this passage matters"
-      }
-    ],
-    "linguisticInsight": "Hebrew/Greek word studies, grammar",
-    "theologicalPerspectives": [
-      {
-        "tradition": "Catholic/Orthodox/Reformed/etc",
-        "interpretation": "How this tradition understands it"
-      }
-    ],
-    "practicalApplication": "How this applies to faith today",
-    "furtherStudy": ["Related topics to explore"]
-  }
-}
-
-STRICT BOUNDARIES:
-✗ Do not answer political questions
-✗ Do not provide psychological advice
-✗ Do not discuss modern social movements
-✗ Do not give financial/legal/medical advice
-✗ If question is off-topic, set isRelevant: false
-
-Question: ${query}`
-
   try {
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
-      contents: prompt,
+      contents: query,
       config: {
+        systemInstruction: `You are Bible Questions, a profound biblical scholar and theological philosopher. 
+
+Your purpose is to provide deep historical, linguistic (Greek/Hebrew), and theological context to questions. You view all inquiries through the lens of Scripture.
+
+IMPORTANT: When quoting Bible verses, use the World English Bible (WEB) translation which is in the public domain. Provide verse references and text naturally as part of your scholarly analysis.
+
+RULES:
+
+1. RELEVANCE & SCOPE: 
+   - You accept questions regarding the Bible, theology, church history, and spiritual growth.
+   - You ALSO accept broad philosophical, ethical, and existential questions (e.g., "What is the meaning of life?", "Why is there suffering?", "What is truth?"). 
+   - IF the input is completely unrelated to these topics (e.g., coding, sports scores, recipes), set 'isRelevant' to false and politely explain that you only examine life through Biblical and theological lenses.
+
+2. THEOLOGICAL BRIDGING:
+   - IF the user asks a philosophical or abstract question without a specific verse, you must identified the primary Biblical Themes that address this concept.
+   - Answer the question by synthesizing the Biblical worldview, citing relevant events or teachings to support the answer.
+
+3. STRUCTURED RESPONSE ('literalAnswer'): 
+   - This corresponds to the 'Breakdown' section. 
+   - It must be a DETAILED, THOROUGH, and COMPREHENSIVE answer (2-3 substantial paragraphs). 
+   - If the question is philosophical, define the concept, then contrast secular views with the Biblical perspective.
+   - Explain nuances, historical background, and theological implications fully.
+
+4. IDENTIFY 'keyTerms' within your 'literalAnswer'. 
+   - Select 2-5 important people, theological concepts, or difficult terms that appear in the answer.
+   - Provide the exact text segment as it appears in the answer for 'term'.
+   - Provide a simple, 1-sentence definition for 'definition'.
+
+5. Generate a 'searchTopic'. This is a concise 2-5 word string optimized for searching external article databases.
+
+6. MANDATORY INTERLINEAR: 
+   - IF the user input contains a scripture reference (e.g. 'John 1:1') OR asks about a specific verse, you MUST include the 'interlinear' object.
+   - IF the user asks a general philosophical question WITHOUT a specific verse, you may OMIT the 'interlinear' object or set it to null.
+   - When active: Break the ENTIRE verse down word-for-word in its original language (Hebrew for OT, Greek for NT).
+
+7. Focus on "Original Meaning" - always dig into the Hebrew (OT) or Greek (NT) keywords in 'originalLanguageAnalysis', even for philosophical concepts (e.g., analyzing "Aletheia" if asked about Truth).
+
+8. COMMENTARY SYNTHESIS:
+   - Provide a list of 3-5 distinct insights from specific famous commentators regarding the theme or verses identified.
+   - You MUST include at least one Jewish source (e.g., Rashi, Rambam, Midrash) and one Christian source (e.g., Matthew Henry, Calvin, Augustine).
+   - Attribute the source clearly.
+
+9. For 'biblicalBookFrequency', analyze the distribution of the relevant theme/word across the entire Bible. Return the top 5-8 books where this theme appears most frequently.
+
+10. For 'scriptureReferences':
+    - You MUST include EVERY single Bible verse reference mentioned in your 'literalAnswer'.
+    - Also include other relevant verses that answer the philosophical query.
+    - Include the full text of the verse from the World English Bible (WEB).
+
+11. CRITICAL: You must identify a 'geographicalAnchor' for the query. 
+    - Even for abstract concepts, ground them in a location (e.g. "Grace" -> "Rome" (Epistles) or "Jerusalem" (Cross)). 
+    - IF the location is unknown or abstract, YOU MUST DEFAULT to 'location': "Israel" and 'region': "The Holy Land". 
+
+12. For 'historicalContext', you MUST provide a dedicated archaeological and cultural analysis of the era most relevant to the answer.
+
+        Keep the tone scholarly, reverent, and minimalist. Avoid emojis.`,
         responseMimeType: 'application/json',
-      },
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            isRelevant: { type: Type.BOOLEAN },
+            refusalMessage: { type: Type.STRING },
+            content: {
+              type: Type.OBJECT,
+              properties: {
+                literalAnswer: { type: Type.STRING, description: 'A detailed, thorough, educational breakdown of the answer (2-3 paragraphs).' },
+                keyTerms: {
+                  type: Type.ARRAY,
+                  description: 'Key people or terms found inside the literalAnswer to be highlighted.',
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      term: { type: Type.STRING, description: 'The exact word/phrase from literalAnswer.' },
+                      definition: { type: Type.STRING, description: 'A simple hover definition.' }
+                    },
+                    required: ['term', 'definition']
+                  }
+                },
+                searchTopic: { type: Type.STRING, description: 'Optimized keyword string for finding external articles.' },
+                geographicalAnchor: {
+                  type: Type.OBJECT,
+                  description: 'The primary location associated with the topic for mapping purposes.',
+                  properties: {
+                    location: { type: Type.STRING, description: 'Specific city or site. Default to Israel if unknown.' },
+                    region: { type: Type.STRING, description: 'Broader ancient region. Default to The Holy Land if unknown.' }
+                  },
+                  required: ['location', 'region']
+                },
+                interlinear: {
+                  type: Type.OBJECT,
+                  description: 'Mandatory for verse queries. The word-for-word breakdown.',
+                  properties: {
+                    reference: { type: Type.STRING },
+                    language: { type: Type.STRING },
+                    words: {
+                      type: Type.ARRAY,
+                      items: {
+                        type: Type.OBJECT,
+                        properties: {
+                          original: { type: Type.STRING },
+                          transliteration: { type: Type.STRING },
+                          english: { type: Type.STRING },
+                          partOfSpeech: { type: Type.STRING }
+                        },
+                        required: ['original', 'transliteration', 'english', 'partOfSpeech']
+                      }
+                    }
+                  },
+                  required: ['reference', 'language', 'words']
+                },
+                scriptureReferences: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      reference: { type: Type.STRING },
+                      text: { type: Type.STRING, description: 'The full text of the verse from the WEB (World English Bible).' }
+                    },
+                    required: ['reference', 'text']
+                  }
+                },
+                historicalContext: { type: Type.STRING, description: 'Archaeological context, description of the era/times, and cultural background.' },
+                originalLanguageAnalysis: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      word: { type: Type.STRING },
+                      original: { type: Type.STRING },
+                      transliteration: { type: Type.STRING },
+                      language: { type: Type.STRING },
+                      definition: { type: Type.STRING },
+                      usage: { type: Type.STRING }
+                    },
+                    required: ['word', 'original', 'transliteration', 'language', 'definition', 'usage']
+                  }
+                },
+                theologicalInsight: { type: Type.STRING },
+                commentarySynthesis: {
+                  type: Type.ARRAY,
+                  description: 'A list of distinct insights from specific commentators.',
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      source: { type: Type.STRING, description: 'Name of the commentator (e.g. Rashi, Henry).' },
+                      text: { type: Type.STRING, description: 'The specific insight or commentary.' },
+                      tradition: { type: Type.STRING, description: 'The religious tradition of the commentator.' }
+                    },
+                    required: ['source', 'text', 'tradition']
+                  }
+                },
+                biblicalBookFrequency: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      book: { type: Type.STRING, description: 'Name of the Bible book (e.g. Psalms, Romans)' },
+                      count: { type: Type.NUMBER, description: 'Estimated number of occurrences or frequency score' }
+                    },
+                    required: ['book', 'count']
+                  }
+                }
+              },
+              required: ['literalAnswer', 'searchTopic', 'geographicalAnchor', 'scriptureReferences', 'historicalContext', 'originalLanguageAnalysis', 'theologicalInsight', 'commentarySynthesis', 'biblicalBookFrequency']
+            }
+          },
+          required: ['isRelevant']
+        }
+      }
     })
     
     const text = response.text
