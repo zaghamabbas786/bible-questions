@@ -31,7 +31,7 @@ export async function GET() {
     <lastmod>${new Date().toISOString()}</lastmod>
   </sitemap>
 ${Array.from({ length: numberOfSitemaps }, (_, i) => `  <sitemap>
-    <loc>${baseUrl}/sitemap-questions-${i}.xml</loc>
+    <loc>${baseUrl}/sitemap-questions/${i}</loc>
     <lastmod>${new Date().toISOString()}</lastmod>
   </sitemap>`).join('\n')}
 </sitemapindex>`

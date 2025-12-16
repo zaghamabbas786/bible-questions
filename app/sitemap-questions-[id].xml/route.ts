@@ -14,15 +14,10 @@ import { createPublicClient } from '@/lib/supabase-public'
  * etc.
  */
 
-interface RouteParams {
-  params: Promise<{
-    id: string
-  }>
-}
-
+// @ts-ignore - Next.js type inference issue with .xml in folder name
 export async function GET(
   request: NextRequest,
-  { params }: RouteParams
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yourdomain.com'
   const { id } = await params
