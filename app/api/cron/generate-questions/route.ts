@@ -96,11 +96,10 @@ export async function GET(request: NextRequest) {
 
     console.log(`🚀 Generating questions [${status.progress}/${status.target}]...`)
 
-    // Step 4: Generate questions (3 parallel)
+    // Step 4: Generate questions (3 per run to stay within API limits)
     const parallelCount = 3
-    const batchSize = 10
     
-    const questions = await generateBiblicalQuestions(batchSize)
+    const questions = await generateBiblicalQuestions(parallelCount)
     
     if (!questions || questions.length === 0) {
       console.error('❌ Failed to generate questions')
@@ -112,12 +111,11 @@ export async function GET(request: NextRequest) {
 
     console.log(`✅ Generated ${questions.length} questions`)
 
-    // Step 5: Process 3 questions in parallel
+    // Step 5: Process all questions in parallel
     let savedCount = 0
-    const chunk = questions.slice(0, parallelCount)
 
     const results = await Promise.allSettled(
-      chunk.map(question => processQuestion(question, supabase))
+      questions.map(question => processQuestion(question, supabase))
     )
 
     let skippedCount = 0
