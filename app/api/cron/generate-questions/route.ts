@@ -254,10 +254,12 @@ Provide ONLY a JSON array of strings, for example: ["Question 1?", "Question 2?"
 No additional text, just the JSON array.`
 
   try {
-    const model = ai.getGenerativeModel({ model: MODEL_NAME })
-    const result = await model.generateContent(prompt)
-    const response = result.response
-    const text = response.text()
+    const response = await ai.models.generateContent({
+      model: MODEL_NAME,
+      contents: prompt,
+    })
+
+    const text = response.text
 
     if (!text) {
       throw new Error('Empty response from Gemini')
@@ -346,16 +348,15 @@ STRICT BOUNDARIES:
 Question: ${query}`
 
   try {
-    const model = ai.getGenerativeModel({ model: MODEL_NAME })
-    const result = await model.generateContent({
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: {
+    const response = await ai.models.generateContent({
+      model: MODEL_NAME,
+      contents: prompt,
+      config: {
         responseMimeType: 'application/json',
       },
     })
     
-    const response = result.response
-    const text = response.text()
+    const text = response.text
     
     if (!text) {
       throw new Error('Empty response from Gemini')
