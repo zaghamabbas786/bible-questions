@@ -16,6 +16,7 @@ const isPublicRoute = createRouteMatcher([
   '/api/test-supabase',
   '/api/test-welcome-email', // Test endpoint for welcome emails (requires auth)
   '/api/webhooks/clerk', // Clerk webhook for welcome emails
+  '/api/cron/generate-questions', // Vercel Cron Job (secured via CRON_SECRET)
 ])
 
 export default clerkMiddleware(async (auth, req) => {
