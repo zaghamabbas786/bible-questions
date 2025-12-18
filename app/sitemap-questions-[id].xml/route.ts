@@ -19,8 +19,8 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  // Remove trailing slash from baseUrl to prevent double slashes
-  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://biblequestionsapp.com').replace(/\/$/, '')
+  // Use hardcoded baseUrl to avoid any routing issues
+  const baseUrl = 'https://biblequestionsapp.com'
   const { id } = await params
   const sitemapId = parseInt(id, 10)
 

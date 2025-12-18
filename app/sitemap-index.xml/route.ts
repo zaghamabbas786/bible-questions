@@ -9,8 +9,8 @@ import { createPublicClient } from '@/lib/supabase-public'
  * Access at: /sitemap-index.xml
  */
 export async function GET() {
-  // Remove trailing slash from baseUrl to prevent double slashes
-  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://biblequestionsapp.com').replace(/\/$/, '')
+  // Use hardcoded baseUrl to avoid any routing issues
+  const baseUrl = 'https://biblequestionsapp.com'
   
   // Count total questions with slugs
   const supabase = createPublicClient()
@@ -32,7 +32,7 @@ export async function GET() {
     <lastmod>${new Date().toISOString()}</lastmod>
   </sitemap>
 ${Array.from({ length: numberOfSitemaps }, (_, i) => `  <sitemap>
-    <loc>${baseUrl}/sitemap-questions/${i}</loc>
+    <loc>${baseUrl}/sitemap-questions-${i}.xml</loc>
     <lastmod>${new Date().toISOString()}</lastmod>
   </sitemap>`).join('\n')}
 </sitemapindex>`

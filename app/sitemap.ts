@@ -7,8 +7,8 @@ import { MetadataRoute } from 'next'
  * Each child sitemap can contain up to 50,000 URLs as per Google's limit
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // Remove trailing slash from baseUrl to prevent double slashes
-  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://biblequestionsapp.com').replace(/\/$/, '')
+  // Use hardcoded baseUrl to avoid any routing issues
+  const baseUrl = 'https://biblequestionsapp.com'
   
   return [
     {
