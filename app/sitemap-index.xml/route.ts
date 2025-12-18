@@ -9,7 +9,8 @@ import { createPublicClient } from '@/lib/supabase-public'
  * Access at: /sitemap-index.xml
  */
 export async function GET() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yourdomain.com'
+  // Remove trailing slash from baseUrl to prevent double slashes
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://biblequestionsapp.com').replace(/\/$/, '')
   
   // Count total questions with slugs
   const supabase = createPublicClient()
