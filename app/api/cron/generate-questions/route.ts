@@ -266,10 +266,31 @@ async function processQuestion(question: string, supabase: any) {
  * Generate biblical questions using Gemini
  */
 async function generateBiblicalQuestions(count: number): Promise<string[]> {
-  const prompt = `Generate ${count} unique and diverse biblical questions suitable for deep study. 
-Focus on theology, history, characters, prophecy, and spiritual concepts. 
-Provide ONLY a JSON array of strings, for example: ["Question 1?", "Question 2?"]
-No additional text, just the JSON array.`
+  const prompt = `Generate ${count} short, natural biblical questions that sound like real people searching on Google.
+
+RULES:
+- Keep questions SHORT (5-12 words max)
+- Use simple, conversational language
+- Questions should sound natural, not academic or robotic
+- Mix different question types: "What is...", "Who was...", "Why did...", "How did...", "Where is...", "When did..."
+- Focus on: Bible characters, stories, meanings, locations, events, teachings
+- NO long explanatory questions
+- NO complex theological jargon
+
+GOOD Examples:
+"What does grace mean in the Bible?"
+"Who was Moses?"
+"Why did Jesus cry?"
+"Where did the Israelites cross the Red Sea?"
+"How did David defeat Goliath?"
+"What is the book of Psalms about?"
+
+BAD Examples (too long/academic):
+"Examine the hermeneutical challenges and theological implications..."
+"Trace the historical and theological development of..."
+"Analyze the complexities of King David's character focusing on..."
+
+Return ONLY a JSON array: ["Question 1?", "Question 2?", "Question 3?"]`
 
   try {
     const response = await ai.models.generateContent({
